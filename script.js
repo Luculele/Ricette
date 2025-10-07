@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
     select.appendChild(opt);
   });
 
-  // funzione che azzera la colonna scalata (mostra "—")
+  // funzione che azzera la colonna scalata
   function azzeraScalati() {
     ingredienti.forEach((ing) => {
       if (ing.adjQtyEl) ing.adjQtyEl.textContent = "—";
@@ -48,25 +48,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // quando cambia il target, azzero i valori scalati e imposto il valore default nell'input
-  select.addEventListener("change", () => {
+  // quando cambia il target o l'input
+  function resetOnChange() {
     const ing = ingredienti[parseInt(select.value, 10)];
     if (ing) inputTargetVal.value = ing.qty;
     azzeraScalati();
-  });
-
-  // quando l'utente modifica il valore target (digitando), azzero i valori scalati per evitare confusione
-  inputTargetVal.addEventListener("input", () => {
-    azzeraScalati();
-  });
-
-  if (ingredienti.length > 0) {
-    select.value = 0;
-    inputTargetVal.value = ingredienti[0].qty;
-    azzeraScalati();
   }
 
-  // formattazione: se unit contiene 'pc' => intero, altrimenti 2 decimali (senza .00)
+  select.addEventListener("change", resetOnChange);
+  inputTargetVal.addEventListener("input", azzeraScalati);
+
+  if (ingredienti.length > 0) resetOnChange();
+
+  // formattazione valori
   function formatQty(val, unit) {
     if (!isFinite(val)) return "—";
     if (unit && unit.toLowerCase().includes("pc"))
@@ -77,24 +71,14 @@ document.addEventListener("DOMContentLoaded", function () {
     return s;
   }
 
-  // calcola valori scalati e aggiorna colonna "Scalato" (INCLUSO il target)
+  // calcolo valori scalati senza toccare gli originali
   function scalaRicetta(targetIndex, nuovoVal) {
     const target = ingredienti[targetIndex];
-    if (!target) {
-      alert("Seleziona un ingrediente target valido.");
-      return;
-    }
-    if (!isFinite(nuovoVal) || nuovoVal <= 0) {
-      alert("Inserisci un valore numerico maggiore di 0 per il nuovo valore.");
-      return;
-    }
-    const orig = target.qty;
-    if (!(orig > 0)) {
-      alert("Valore originale non valido per l'ingrediente selezionato.");
-      return;
-    }
+    if (!target) return alert("Seleziona un ingrediente target valido.");
+    if (!isFinite(nuovoVal) || nuovoVal <= 0)
+      return alert("Inserisci un valore numerico maggiore di 0.");
 
-    const fattore = nuovoVal / orig;
+    const fattore = nuovoVal / target.qty;
 
     ingredienti.forEach((ing) => {
       const adj = ing.origQty * fattore;
@@ -103,18 +87,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Applica: legge indice e valore e scala
+  // Applica
   btnCalc.addEventListener("click", () => {
     const idx = parseInt(select.value, 10);
     const val = parseFloat(inputTargetVal.value);
     scalaRicetta(idx, val);
   });
 
-  // Reset: svuota la colonna scalata (mostra "—") e riporta l'input al valore originale
-  btnReset.addEventListener("click", () => {
-    azzeraScalati();
-    const idx = parseInt(select.value, 10);
-    if (!isNaN(idx) && ingredienti[idx])
-      inputTargetVal.value = ingredienti[idx].qty;
-  });
+  // Reset
+  btnReset.addEventListener("click", resetOnChange);
 });
