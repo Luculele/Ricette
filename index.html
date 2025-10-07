@@ -7,87 +7,33 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="ricetta">
-      <h1>Torta di Mele</h1>
-      <p class="descrizione">Una soffice torta di mele fatta in casa.</p>
+    <button id="btn-add-recipe">Aggiungi ricetta</button>
 
-      <h2>Ingredienti</h2>
-      <div class="scala-controls">
-        <label for="select-target">Ingrediente target:</label>
-        <select id="select-target"></select>
+    <div id="form-nuova-ricetta" style="display: none; margin-top: 20px">
+      <h3>Nuova ricetta</h3>
+      <input
+        type="text"
+        id="nuovo-titolo"
+        placeholder="Titolo ricetta"
+      /><br /><br />
+      <textarea id="nuova-descrizione" placeholder="Descrizione"></textarea
+      ><br /><br />
 
-        <label for="input-target-value">Nuovo valore:</label>
-        <input type="number" id="input-target-value" step="0.1" />
+      <h4>Ingredienti</h4>
+      <div id="ingredienti-container"></div>
+      <button id="btn-add-ingredient">Aggiungi ingrediente</button><br /><br />
 
-        <button id="btn-calc">Applica</button>
-        <button id="btn-reset">Reset</button>
-      </div>
-
-      <ul id="lista-ingredienti">
-        <li data-name="Farina" data-qty="300" data-unit="g">
-          <span class="ing-left">Farina</span>
-          <span class="ing-mid">
-            Originale: <span class="qty">300</span>
-            <span class="unit">g</span>
-          </span>
-          <span class="ing-right">
-            Scalato: <span class="adj-qty">—</span>
-            <span class="adj-unit">g</span>
-          </span>
-        </li>
-        <li data-name="Zucchero" data-qty="150" data-unit="g">
-          <span class="ing-left">Zucchero</span>
-          <span class="ing-mid">
-            Originale: <span class="qty">150</span>
-            <span class="unit">g</span>
-          </span>
-          <span class="ing-right">
-            Scalato: <span class="adj-qty">—</span>
-            <span class="adj-unit">g</span>
-          </span>
-        </li>
-        <li data-name="Burro" data-qty="100" data-unit="g">
-          <span class="ing-left">Burro</span>
-          <span class="ing-mid">
-            Originale: <span class="qty">100</span>
-            <span class="unit">g</span>
-          </span>
-          <span class="ing-right">
-            Scalato: <span class="adj-qty">—</span>
-            <span class="adj-unit">g</span>
-          </span>
-        </li>
-        <li data-name="Uova" data-qty="2" data-unit="pcs">
-          <span class="ing-left">Uova</span>
-          <span class="ing-mid">
-            Originale: <span class="qty">2</span>
-            <span class="unit">pcs</span>
-          </span>
-          <span class="ing-right">
-            Scalato: <span class="adj-qty">—</span>
-            <span class="adj-unit">pcs</span>
-          </span>
-        </li>
-        <li data-name="Latte" data-qty="100" data-unit="ml">
-          <span class="ing-left">Latte</span>
-          <span class="ing-mid">
-            Originale: <span class="qty">100</span>
-            <span class="unit">ml</span>
-          </span>
-          <span class="ing-right">
-            Scalato: <span class="adj-qty">—</span>
-            <span class="adj-unit">ml</span>
-          </span>
-        </li>
-      </ul>
-
-      <h2>Procedimento</h2>
-      <ol>
-        <li>Mescola ingredienti secchi.</li>
-        <li>Aggiungi burro e uova.</li>
-        <li>Cuoci a 180°C per 30 minuti.</li>
-      </ol>
+      <textarea
+        id="nuovo-procedimento"
+        placeholder="Procedimento (passo per passo)"
+      ></textarea
+      ><br /><br />
+      <button id="btn-save-recipe">Salva ricetta</button>
+      <button id="btn-cancel-recipe">Annulla</button>
     </div>
+
+    <!-- display list -->
+    <div id="recipes-list"></div>
 
     <script src="script.js"></script>
   </body>

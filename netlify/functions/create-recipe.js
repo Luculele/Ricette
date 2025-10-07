@@ -1,40 +1,48 @@
-// netlify/functions/create-recipe.js
-const { Pool } = require("pg");
+const { Client } = require("pg");
 
-const pool = new Pool({
-  connectionString: process.env.NEON_DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
-
-exports.handler = async function (event, context) {
+exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
   try {
     const data = JSON.parse(event.body);
-    const { title, description, ingredients, procedure } = data;
+    const { title, description, image_url, ingredients, procedure, author } =
+      data;
 
-    if (!title || !ingredients) {
-      return { statusCode: 400, body: "Missing title or ingredients" };
+    if (!title || !Array.isArray(ingredients) || ingredients.length === 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ success: false, message: "Dati mancanti" }),
+      };
     }
 
-    const query = `
-      INSERT INTO recipes (title, description, ingredients, procedure)
-      VALUES ($1, $2, $3::jsonb, $4)
-      RETURNING id, title, created_at;
-    `;
-    const values = [
-      title,
-      description || null,
-      JSON.stringify(ingredients),
-      procedure || null,
-    ];
-    const res = await pool.query(query, values);
+    const client = new Client({
+      connectionString: process.env.NEON_DATABASE_URL,
+    });
+    await client.connect();
 
-    return { statusCode: 201, body: JSON.stringify(res.rows[0]) };
+    await client.query(
+      `INSERT INTO recipes (title, description, image_url, ingredients, procedure, author)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        title,
+        description || "",
+        image_url || "",
+        JSON.stringify(ingredients),
+        procedure || "",
+        author || "",
+      ]
+    );
+
+    await client.end();
+
+    return { statusCode: 200, body: JSON.stringify({ success: true }) };
   } catch (err) {
-    console.error("create-recipe error", err);
-    return { statusCode: 500, body: "Server error" };
+    console.error(err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, message: err.message }),
+    };
   }
 };

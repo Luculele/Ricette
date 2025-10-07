@@ -1,99 +1,295 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const select = document.getElementById("select-target");
-  const lista = document.getElementById("lista-ingredienti");
-  const btnCalc = document.getElementById("btn-calc");
-  const btnReset = document.getElementById("btn-reset");
-  const inputTargetVal = document.getElementById("input-target-value");
+// script.js — versione aggiornata: carica dal DB, form dinamico, POST su Netlify Functions
+document.addEventListener("DOMContentLoaded", () => {
+  // DOM references (verifica esistenza)
+  const recipesList =
+    document.getElementById("recipes-list") || createRecipesList();
+  const btnAdd = document.getElementById("btn-add-recipe");
+  const formNuova = document.getElementById("form-nuova-ricetta");
+  const btnCancel = document.getElementById("btn-cancel-recipe");
+  const btnSave = document.getElementById("btn-save-recipe");
+  const ingredientiContainer = document.getElementById("ingredienti-container");
+  const btnAddIngredient = document.getElementById("btn-add-ingredient");
 
-  if (!select || !lista || !btnCalc) return;
+  // helper: se non esiste recipes-list lo crea
+  function createRecipesList() {
+    const container = document.createElement("div");
+    container.id = "recipes-list";
+    // inserisco prima del main content se c'è, altrimenti in cima al body
+    const main = document.querySelector(".ricetta") || document.body.firstChild;
+    if (main && main.parentNode) main.parentNode.insertBefore(container, main);
+    else document.body.insertBefore(container, document.body.firstChild);
+    return container;
+  }
 
-  // costruisco array ingredienti
-  const ingredienti = [];
-  const lis = Array.from(lista.querySelectorAll("li"));
-  lis.forEach((li) => {
-    const nome = li.getAttribute("data-name") || "";
-    const qty =
-      parseFloat(li.getAttribute("data-qty")) ||
-      parseFloat(li.querySelector(".qty").textContent) ||
-      0;
-    const unit =
-      li.getAttribute("data-unit") ||
-      (li.querySelector(".unit") ? li.querySelector(".unit").textContent : "");
-    const adjQtyEl = li.querySelector(".adj-qty");
-    const adjUnitEl = li.querySelector(".adj-unit");
-    ingredienti.push({
-      nome,
-      qty,
-      unit,
-      li,
-      origQty: qty,
-      adjQtyEl,
-      adjUnitEl,
-    });
-  });
-
-  // riempio la select
-  ingredienti.forEach((ing, idx) => {
-    const opt = document.createElement("option");
-    opt.value = idx;
-    opt.textContent = `${ing.nome} (${ing.origQty} ${ing.unit})`;
-    select.appendChild(opt);
-  });
-
-  // funzione che azzera la colonna scalata
-  function azzeraScalati() {
-    ingredienti.forEach((ing) => {
-      if (ing.adjQtyEl) ing.adjQtyEl.textContent = "—";
-      if (ing.adjUnitEl) ing.adjUnitEl.textContent = ing.unit || "";
+  // ---------- evento apertura form ----------
+  if (btnAdd && formNuova) {
+    btnAdd.addEventListener("click", () => {
+      formNuova.style.display = "block";
+      // pulisco ingredienti e inserisco una riga vuota iniziale
+      if (ingredientiContainer) {
+        ingredientiContainer.innerHTML = "";
+        addIngredienteRow();
+      }
     });
   }
 
-  // quando cambia il target o l'input
-  function resetOnChange() {
-    const ing = ingredienti[parseInt(select.value, 10)];
-    if (ing) inputTargetVal.value = ing.qty;
-    azzeraScalati();
-  }
-
-  select.addEventListener("change", resetOnChange);
-  inputTargetVal.addEventListener("input", azzeraScalati);
-
-  if (ingredienti.length > 0) resetOnChange();
-
-  // formattazione valori
-  function formatQty(val, unit) {
-    if (!isFinite(val)) return "—";
-    if (unit && unit.toLowerCase().includes("pc"))
-      return String(Math.round(val));
-    let s = Number(val).toFixed(2);
-    s = s.replace(/\.00$/, "");
-    s = s.replace(/(\.\d)0$/, "$1");
-    return s;
-  }
-
-  // calcolo valori scalati senza toccare gli originali
-  function scalaRicetta(targetIndex, nuovoVal) {
-    const target = ingredienti[targetIndex];
-    if (!target) return alert("Seleziona un ingrediente target valido.");
-    if (!isFinite(nuovoVal) || nuovoVal <= 0)
-      return alert("Inserisci un valore numerico maggiore di 0.");
-
-    const fattore = nuovoVal / target.qty;
-
-    ingredienti.forEach((ing) => {
-      const adj = ing.origQty * fattore;
-      if (ing.adjQtyEl) ing.adjQtyEl.textContent = formatQty(adj, ing.unit);
-      if (ing.adjUnitEl) ing.adjUnitEl.textContent = ing.unit || "";
+  if (btnCancel && formNuova) {
+    btnCancel.addEventListener("click", () => {
+      formNuova.style.display = "none";
     });
   }
 
-  // Applica
-  btnCalc.addEventListener("click", () => {
-    const idx = parseInt(select.value, 10);
-    const val = parseFloat(inputTargetVal.value);
-    scalaRicetta(idx, val);
-  });
+  // ---------- funzione per aggiungere una riga ingrediente ----------
+  function addIngredienteRow(name = "", qty = "", unit = "") {
+    if (!ingredientiContainer) return;
+    const div = document.createElement("div");
+    div.className = "ingrediente-row";
+    div.style.marginBottom = "8px";
+    div.innerHTML = `
+      <input type="text" class="ing-nome" placeholder="Nome ingrediente" value="${escapeHtml(
+        name
+      )}" />
+      <input type="number" class="ing-qty" placeholder="Quantità" value="${escapeHtml(
+        qty
+      )}" style="width:100px" />
+      <input type="text" class="ing-unit" placeholder="Unità" value="${escapeHtml(
+        unit
+      )}" style="width:80px" />
+      <button type="button" class="btn-remove-ing">Rimuovi</button>
+    `;
+    ingredientiContainer.appendChild(div);
 
-  // Reset
-  btnReset.addEventListener("click", resetOnChange);
+    // rimuovi ingrediente
+    const btnRemove = div.querySelector(".btn-remove-ing");
+    if (btnRemove) {
+      btnRemove.addEventListener("click", () => div.remove());
+    }
+  }
+
+  // escape semplice per valori inseriti in value attr
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return "";
+    return String(s)
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // bind sul bottone "Aggiungi ingrediente"
+  if (btnAddIngredient) {
+    btnAddIngredient.addEventListener("click", (e) => {
+      e.preventDefault();
+      addIngredienteRow();
+    });
+  }
+
+  // ---------- carica ricette dal DB e le renderizza ----------
+  async function loadRecipes() {
+    recipesList.innerHTML = "<p>Caricamento ricette…</p>";
+    try {
+      const res = await fetch("/.netlify/functions/get-recipes");
+      if (!res.ok) throw new Error(`Errore fetch: ${res.status}`);
+      const recipes = await res.json();
+
+      // svuota area e ricrea
+      recipesList.innerHTML = "";
+      if (!Array.isArray(recipes) || recipes.length === 0) {
+        recipesList.innerHTML = "<p>Nessuna ricetta trovata.</p>";
+        return;
+      }
+
+      recipes.forEach((r) => {
+        const el = renderRecipe(r);
+        recipesList.appendChild(el);
+      });
+    } catch (err) {
+      console.error("loadRecipes error:", err);
+      recipesList.innerHTML = `<p>Errore nel caricamento delle ricette.</p>`;
+    }
+  }
+
+  // helper: crea DOM di una ricetta (usa proprietà della tabella: image_url, ingredients JSONB, procedure TEXT)
+  function renderRecipe(r) {
+    const wrapper = document.createElement("article");
+    wrapper.className = "ricetta";
+    const title = escapeText(r.title || "Untitled");
+    const desc = escapeText(r.description || "");
+    const author = r.author
+      ? `<p class="author">Autore: ${escapeText(r.author)}</p>`
+      : "";
+    const image = r.image_url
+      ? `<img src="${escapeText(
+          r.image_url
+        )}" alt="${title}" style="max-width:220px;margin:8px 0;border-radius:6px">`
+      : "";
+    let ingredientsHtml = "<ul>";
+    try {
+      const ings = Array.isArray(r.ingredients)
+        ? r.ingredients
+        : JSON.parse(r.ingredients || "[]");
+      ings.forEach((ing) => {
+        const name = escapeText(ing.name || ing.nome || "");
+        const qty = escapeText(ing.qty != null ? ing.qty : "");
+        const unit = escapeText(ing.unit || "");
+        ingredientsHtml += `<li>${name}: ${qty} ${unit}</li>`;
+      });
+    } catch (e) {
+      ingredientsHtml += "<li>Errore leggendo ingredienti</li>";
+    }
+    ingredientsHtml += "</ul>";
+
+    // procedure può essere TEXT normale o JSON array — gestiamo entrambi
+    let procedureHtml = "";
+    try {
+      if (!r.procedure) {
+        procedureHtml = "<p>-</p>";
+      } else {
+        // se è JSON array
+        let proc = r.procedure;
+        if (typeof proc === "string") {
+          // prova a vedere se è JSON
+          try {
+            const parsed = JSON.parse(proc);
+            if (Array.isArray(parsed)) proc = parsed;
+          } catch (e) {
+            // rimane stringa: split on newlines
+            proc = proc
+              .split("\n")
+              .map((s) => s.trim())
+              .filter(Boolean);
+          }
+        }
+        if (Array.isArray(proc)) {
+          procedureHtml =
+            "<ol>" +
+            proc.map((p) => `<li>${escapeText(p)}</li>`).join("") +
+            "</ol>";
+        } else {
+          procedureHtml = `<p>${escapeText(String(proc))}</p>`;
+        }
+      }
+    } catch (e) {
+      procedureHtml = "<p>Errore procedura</p>";
+    }
+
+    wrapper.innerHTML = `
+      <h3>${title}</h3>
+      <p class="descrizione">${desc}</p>
+      ${image}
+      <h4>Ingredienti</h4>
+      ${ingredientsHtml}
+      <h4>Procedimento</h4>
+      ${procedureHtml}
+      ${author}
+      <hr/>
+    `;
+    return wrapper;
+  }
+
+  function escapeText(s) {
+    if (s === null || s === undefined) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // ---------- salva la nuova ricetta sul DB (POST) ----------
+  if (btnSave) {
+    btnSave.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const titoloInput = document.getElementById("nuovo-titolo");
+      const descrizioneInput = document.getElementById("nuova-descrizione");
+      const procedimentoInput = document.getElementById("nuovo-procedimento");
+      const imageInput = document.getElementById("nuova-immagine"); // opzionale
+      const authorInput = document.getElementById("nuovo-autore"); // opzionale
+
+      const titolo = titoloInput ? titoloInput.value.trim() : "";
+      const descrizione = descrizioneInput ? descrizioneInput.value.trim() : "";
+      const procedimento = procedimentoInput
+        ? procedimentoInput.value.trim()
+        : "";
+      const image_url = imageInput ? imageInput.value.trim() : "";
+      const author = authorInput ? authorInput.value.trim() : "";
+
+      if (!titolo) {
+        alert("Inserisci il titolo della ricetta!");
+        return;
+      }
+
+      // raccogli ingredienti
+      const ingredientiArr = [];
+      (ingredientiContainer
+        ? ingredientiContainer.querySelectorAll(".ingrediente-row")
+        : []
+      ).forEach((row) => {
+        const nomeEl = row.querySelector(".ing-nome");
+        const qtyEl = row.querySelector(".ing-qty");
+        const unitEl = row.querySelector(".ing-unit");
+        const nome = nomeEl ? nomeEl.value.trim() : "";
+        const qty = qtyEl ? parseFloat(qtyEl.value) : NaN;
+        const unit = unitEl ? unitEl.value.trim() : "";
+        if (nome && !isNaN(qty)) {
+          ingredientiArr.push({ name: nome, qty, unit });
+        }
+      });
+
+      if (ingredientiArr.length === 0) {
+        alert("Inserisci almeno un ingrediente valido!");
+        return;
+      }
+
+      // disabilita bottone e mostra stato
+      btnSave.disabled = true;
+      btnSave.textContent = "Salvo...";
+
+      try {
+        const res = await fetch("/.netlify/functions/create-recipe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: titolo,
+            description: descrizione,
+            image_url: image_url,
+            ingredients: ingredientiArr,
+            procedure: procedimento, // il DB ha campo TEXT; salviamo la stringa
+            author: author,
+          }),
+        });
+
+        const data = await res.json().catch(() => ({ success: false }));
+
+        if (!res.ok) {
+          console.error("create-recipe failed:", data);
+          alert("Errore durante il salvataggio. Controlla console.");
+        } else {
+          // successo: richiamiamo la lista e puliamo form
+          alert("Ricetta salvata con successo!");
+          formNuova.style.display = "none";
+          // pulizia input
+          if (titoloInput) titoloInput.value = "";
+          if (descrizioneInput) descrizioneInput.value = "";
+          if (procedimentoInput) procedimentoInput.value = "";
+          if (imageInput) imageInput.value = "";
+          if (authorInput) authorInput.value = "";
+          if (ingredientiContainer) ingredientiContainer.innerHTML = "";
+          await loadRecipes();
+        }
+      } catch (err) {
+        console.error("create-recipe error", err);
+        alert("Errore nella richiesta.");
+      } finally {
+        btnSave.disabled = false;
+        btnSave.textContent = "Salva ricetta";
+      }
+    });
+  }
+
+  // inizializza: aggiungo una riga ingrediente di default se il container esiste e lo lascio nascosto
+  if (ingredientiContainer && ingredientiContainer.children.length === 0)
+    addIngredienteRow();
+
+  // carico ricette all'apertura
+  loadRecipes();
 });
