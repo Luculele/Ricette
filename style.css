@@ -1,0 +1,62 @@
+body {
+  font-family: system-ui, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  background: #f4f4f9;
+  color: #222;
+  padding: 20px;
+}
+
+.ricetta {
+  max-width: 800px;
+  margin: auto;
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1,
+h2 {
+  color: #333;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+#lista-ingredienti li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fafafa;
+  padding: 8px 10px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.ing-left {
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.ing-mid,
+.ing-right {
+  font-size: 0.95em;
+}
+
+button {
+  padding: 5px 12px;
+  margin: 0 4px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #f0f0f0;
+}
+
+.scala-controls {
+  margin: 12px 0 18px;
+}

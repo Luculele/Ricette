@@ -1,0 +1,41 @@
+backend:
+  name: git-gateway
+  branch: main # branch del repo da usare (se il tuo branch principale ha altro nome -> cambialo)
+
+media_folder: "static/uploads" # cartella dove Netlify CMS salva immagini (committate)
+public_folder: "/uploads"
+
+collections:
+  - name: "recipes"
+    label: "Ricette"
+    folder: "content/recipes"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { name: "title", label: "Titolo", widget: "string" }
+      - { name: "date", label: "Data", widget: "datetime" }
+      - { name: "description", label: "Descrizione breve", widget: "text" }
+      - { name: "image", label: "Immagine", widget: "image", required: false }
+      - {
+          name: "ingredients",
+          label: "Ingredienti",
+          widget: "list",
+          field:
+            {
+              name: "ingrediente",
+              label: "Ingrediente",
+              widget: "object",
+              fields:
+                [
+                  { name: "name", label: "Nome", widget: "string" },
+                  { name: "qty", label: "Quantità", widget: "number" },
+                  {
+                    name: "unit",
+                    label: "Unità",
+                    widget: "string",
+                    required: false,
+                  },
+                ],
+            },
+        }
+      - { name: "procedure", label: "Procedimento", widget: "markdown" }
