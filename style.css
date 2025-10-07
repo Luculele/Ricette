@@ -60,3 +60,47 @@ button:hover {
 .scala-controls {
   margin: 12px 0 18px;
 }
+
+/* layout cards ricette dentro #recipes-list */
+#recipes-list {
+  display: block;
+  gap: 24px;
+}
+
+/* stile per ogni card */
+#recipes-list .ricetta {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 20px; /* spazio tra le card */
+  box-shadow: 0 6px 18px rgba(22, 27, 33, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* piccolo effetto hover */
+#recipes-list .ricetta:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(22, 27, 33, 0.09);
+}
+
+/* titolo e immagine più leggibili */
+#recipes-list .ricetta h3 {
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+#recipes-list .ricetta img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 8px 0;
+  border-radius: 8px;
+}
+
+/* responsività: meno padding su schermi piccoli */
+@media (max-width: 600px) {
+  #recipes-list .ricetta {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+}
