@@ -196,40 +196,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- salva la nuova ricetta sul DB (POST) ----------
   if (btnSave) {
-    btnSave.addEventListener("click", async (e) => {
-      e.preventDefault();
-
-      const titoloInput = document.getElementById("nuovo-titolo");
-      const descrizioneInput = document.getElementById("nuova-descrizione");
-      const procedimentoInput = document.getElementById("nuovo-procedimento");
-      const imageInput = document.getElementById("nuova-immagine"); // opzionale
-      const authorInput = document.getElementById("nuovo-autore"); // opzionale
-
-      const titolo = titoloInput ? titoloInput.value.trim() : "";
-      const descrizione = descrizioneInput ? descrizioneInput.value.trim() : "";
-      const procedimento = procedimentoInput
-        ? procedimentoInput.value.trim()
-        : "";
-      const image_url = imageInput ? imageInput.value.trim() : "";
-      const author = authorInput ? authorInput.value.trim() : "";
+    btnSave.addEventListener("click", async () => {
+      const titolo = document.getElementById("nuovo-titolo").value.trim();
+      const autore = document.getElementById("nuovo-autore").value.trim();
+      const descrizione = document
+        .getElementById("nuova-descrizione")
+        .value.trim();
+      const procedimento = document
+        .getElementById("nuovo-procedimento")
+        .value.trim();
 
       if (!titolo) {
         alert("Inserisci il titolo della ricetta!");
         return;
       }
+      if (!autore) {
+        alert("Inserisci il nome dell'autore!");
+        return;
+      }
 
       // raccogli ingredienti
       const ingredientiArr = [];
-      (ingredientiContainer
-        ? ingredientiContainer.querySelectorAll(".ingrediente-row")
-        : []
-      ).forEach((row) => {
-        const nomeEl = row.querySelector(".ing-nome");
-        const qtyEl = row.querySelector(".ing-qty");
-        const unitEl = row.querySelector(".ing-unit");
-        const nome = nomeEl ? nomeEl.value.trim() : "";
-        const qty = qtyEl ? parseFloat(qtyEl.value) : NaN;
-        const unit = unitEl ? unitEl.value.trim() : "";
+      document.querySelectorAll(".ingrediente-row").forEach((row) => {
+        const nome = row.querySelector(".ing-nome").value.trim();
+        const qty = parseFloat(row.querySelector(".ing-qty").value);
+        const unit = row.querySelector(".ing-unit").value.trim();
+
         if (nome && !isNaN(qty)) {
           ingredientiArr.push({ name: nome, qty, unit });
         }
@@ -240,48 +232,28 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // disabilita bottone e mostra stato
-      btnSave.disabled = true;
-      btnSave.textContent = "Salvo...";
+      const body = {
+        title: titolo,
+        author: autore,
+        description: descrizione,
+        procedure: procedimento,
+        ingredients: ingredientiArr,
+      };
 
       try {
         const res = await fetch("/.netlify/functions/create-recipe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: titolo,
-            description: descrizione,
-            image_url: image_url,
-            ingredients: ingredientiArr,
-            procedure: procedimento, // il DB ha campo TEXT; salviamo la stringa
-            author: author,
-          }),
+          body: JSON.stringify(body),
         });
 
-        const data = await res.json().catch(() => ({ success: false }));
-
-        if (!res.ok) {
-          console.error("create-recipe failed:", data);
-          alert("Errore durante il salvataggio. Controlla console.");
-        } else {
-          // successo: richiamiamo la lista e puliamo form
-          alert("Ricetta salvata con successo!");
-          formNuova.style.display = "none";
-          // pulizia input
-          if (titoloInput) titoloInput.value = "";
-          if (descrizioneInput) descrizioneInput.value = "";
-          if (procedimentoInput) procedimentoInput.value = "";
-          if (imageInput) imageInput.value = "";
-          if (authorInput) authorInput.value = "";
-          if (ingredientiContainer) ingredientiContainer.innerHTML = "";
-          await loadRecipes();
-        }
+        if (!res.ok) throw new Error("Errore durante il salvataggio");
+        alert("Ricetta salvata con successo!");
+        formNuova.style.display = "none";
+        loadRecipes(); // ricarica la lista
       } catch (err) {
-        console.error("create-recipe error", err);
-        alert("Errore nella richiesta.");
-      } finally {
-        btnSave.disabled = false;
-        btnSave.textContent = "Salva ricetta";
+        console.error("Errore:", err);
+        alert("Errore nel salvataggio della ricetta.");
       }
     });
   }

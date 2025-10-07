@@ -11,25 +11,41 @@
 
     <div id="form-nuova-ricetta" style="display: none; margin-top: 20px">
       <h3>Nuova ricetta</h3>
+
+      <label for="nuovo-titolo">Titolo:</label>
       <input
         type="text"
         id="nuovo-titolo"
         placeholder="Titolo ricetta"
+        required
       /><br /><br />
+
+      <label for="nuovo-autore">Autore:</label>
+      <input
+        type="text"
+        id="nuovo-autore"
+        placeholder="Il tuo nome"
+        required
+      /><br /><br />
+
+      <label for="nuova-descrizione">Descrizione:</label>
       <textarea id="nuova-descrizione" placeholder="Descrizione"></textarea
       ><br /><br />
 
       <h4>Ingredienti</h4>
       <div id="ingredienti-container"></div>
-      <button id="btn-add-ingredient">Aggiungi ingrediente</button><br /><br />
+      <button type="button" id="btn-add-ingredient">Aggiungi ingrediente</button
+      ><br /><br />
 
+      <label for="nuovo-procedimento">Procedimento:</label>
       <textarea
         id="nuovo-procedimento"
         placeholder="Procedimento (passo per passo)"
       ></textarea
       ><br /><br />
-      <button id="btn-save-recipe">Salva ricetta</button>
-      <button id="btn-cancel-recipe">Annulla</button>
+
+      <button type="button" id="btn-save-recipe">Salva ricetta</button>
+      <button type="button" id="btn-cancel-recipe">Annulla</button>
     </div>
 
     <!-- display list -->

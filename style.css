@@ -104,3 +104,71 @@ button:hover {
     margin-bottom: 16px;
   }
 }
+
+#form-nuova-ricetta {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px 25px;
+  background: #fff8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+#form-nuova-ricetta h3 {
+  text-align: center;
+  color: #d35400;
+}
+
+#form-nuova-ricetta label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+#form-nuova-ricetta input,
+#form-nuova-ricetta textarea {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+#form-nuova-ricetta button {
+  padding: 8px 16px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 6px;
+  background-color: #d35400;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#form-nuova-ricetta button:hover {
+  background-color: #e67e22;
+}
+
+.ingrediente-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ingrediente-row input {
+  flex: 1;
+}
+
+.ingrediente-row .btn-remove-ing {
+  background-color: #c0392b;
+  color: #fff;
+  padding: 4px 10px;
+}
+
+.ingrediente-row .btn-remove-ing:hover {
+  background-color: #e74c3c;
+}
