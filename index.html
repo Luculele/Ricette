@@ -57,6 +57,60 @@
       <p>© 2025 Ricette Scalabili - Tutti i diritti riservati</p>
     </footer>
 
+    <!-- Modal / dettaglio ricetta (invisibile finché non viene aperto) -->
+    <div
+      id="recipe-modal"
+      class="recipe-modal"
+      aria-hidden="true"
+      style="display: none"
+    >
+      <div class="recipe-modal-backdrop" id="modal-backdrop"></div>
+      <div
+        class="recipe-modal-body"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <button class="modal-close" id="modal-close" aria-label="Chiudi">
+          &times;
+        </button>
+
+        <div class="modal-content-inner">
+          <h2 id="modal-title"></h2>
+          <p class="modal-author" id="modal-author"></p>
+          <img
+            id="modal-image"
+            class="modal-image"
+            src=""
+            alt=""
+            style="display: none"
+          />
+
+          <p class="modal-description" id="modal-description"></p>
+
+          <h4>Ingredienti</h4>
+          <ul id="modal-ingredients"></ul>
+
+          <!-- Calcolatore ingredienti -->
+          <div class="modal-scale">
+            <label for="modal-select-target">Ingrediente target:</label>
+            <select id="modal-select-target"></select>
+
+            <label for="modal-input-target-value">Nuovo valore:</label>
+            <input id="modal-input-target-value" type="number" step="0.01" />
+
+            <div class="modal-scale-buttons">
+              <button id="modal-btn-apply">Applica</button>
+              <button id="modal-btn-reset">Reset</button>
+            </div>
+          </div>
+
+          <h4>Procedimento</h4>
+          <div id="modal-procedure"></div>
+        </div>
+      </div>
+    </div>
+
     <script src="script.js"></script>
   </body>
 </html>

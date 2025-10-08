@@ -423,3 +423,143 @@ main {
     min-width: 120px !important;
   }
 }
+
+/* ---------- Modal dettaglio ricetta ---------- */
+.recipe-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+}
+.recipe-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 12, 14, 0.5);
+}
+.recipe-modal-body {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(920px, 96%);
+  max-height: 92vh;
+  overflow: auto;
+  background: linear-gradient(180deg, #fffdf9, #fffaf6);
+  border-radius: 12px;
+  padding: 20px 20px 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  border: 1px solid #f3e1cf;
+}
+.modal-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  color: #666;
+  cursor: pointer;
+}
+.modal-content-inner {
+  max-width: 880px;
+  margin: 6px auto;
+}
+.modal-image {
+  max-width: 320px;
+  float: right;
+  margin-left: 16px;
+  border-radius: 8px;
+}
+.modal-author {
+  color: #6b6b6b;
+  font-style: italic;
+  margin-top: 6px;
+}
+#modal-description {
+  margin: 12px 0;
+  color: #333;
+}
+
+/* ingredienti list nel modal */
+#modal-ingredients {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: block;
+}
+#modal-ingredients li {
+  background: #fff8f0;
+  border: 1px solid #f5d6b1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* colonna originale / scalato */
+.modal-qty {
+  font-weight: 700;
+}
+.modal-unit {
+  color: #444;
+  margin-left: 6px;
+}
+
+/* calcolatore */
+.modal-scale {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 12px 0 18px;
+}
+.modal-scale select,
+.modal-scale input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #dcd6cf;
+}
+.modal-scale-buttons {
+  display: flex;
+  gap: 8px;
+}
+#modal-btn-apply,
+#modal-btn-reset {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  background: linear-gradient(180deg, #d35400, #c94a00);
+  color: #fff;
+}
+#modal-btn-reset {
+  background: #ccc;
+  color: #222;
+  box-shadow: none;
+}
+
+/* procedure */
+#modal-procedure {
+  margin-top: 6px;
+  color: #444;
+  line-height: 1.5;
+}
+
+/* responsive */
+@media (max-width: 760px) {
+  .modal-image {
+    float: none;
+    display: block;
+    margin: 10px auto;
+    max-width: 80%;
+  }
+  .modal-scale {
+    gap: 6px;
+  }
+  .recipe-modal-body {
+    padding: 12px;
+  }
+}

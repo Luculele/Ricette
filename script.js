@@ -135,14 +135,16 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.className = "ricetta";
     const title = escapeText(r.title || "Untitled");
     const desc = escapeText(r.description || "");
-    const author = r.author
+    const authorHtml = r.author
       ? `<p class="autore">Autore: ${escapeText(r.author)}</p>`
       : "";
-    const image = r.image_url
+    const imageHtml = r.image_url
       ? `<img src="${escapeText(
           r.image_url
         )}" alt="${title}" class="recipe-image">`
       : "";
+
+    // build ingredients html (but we keep data on the recipe object for modal)
     let ingredientsHtml = "<ul>";
     try {
       const ings = Array.isArray(r.ingredients)
@@ -152,57 +154,28 @@ document.addEventListener("DOMContentLoaded", () => {
         const name = escapeText(ing.name || ing.nome || "");
         const qty = escapeText(ing.qty != null ? ing.qty : "");
         const unit = escapeText(ing.unit || "");
-        ingredientsHtml += `<li>${name}: ${qty} ${unit}</li>`;
+        ingredientsHtml += `<li>${name}: <span class="modal-qty">${qty}</span> <span class="modal-unit">${unit}</span></li>`;
       });
     } catch (e) {
       ingredientsHtml += "<li>Errore leggendo ingredienti</li>";
     }
     ingredientsHtml += "</ul>";
 
-    // procedure può essere TEXT normale o JSON array — gestiamo entrambi
-    let procedureHtml = "";
-    try {
-      if (!r.procedure) {
-        procedureHtml = "<p>-</p>";
-      } else {
-        // se è JSON array
-        let proc = r.procedure;
-        if (typeof proc === "string") {
-          // prova a vedere se è JSON
-          try {
-            const parsed = JSON.parse(proc);
-            if (Array.isArray(parsed)) proc = parsed;
-          } catch (e) {
-            // rimane stringa: split on newlines
-            proc = proc
-              .split("\n")
-              .map((s) => s.trim())
-              .filter(Boolean);
-          }
-        }
-        if (Array.isArray(proc)) {
-          procedureHtml =
-            "<ol>" +
-            proc.map((p) => `<li>${escapeText(p)}</li>`).join("") +
-            "</ol>";
-        } else {
-          procedureHtml = `<p>${escapeText(String(proc))}</p>`;
-        }
-      }
-    } catch (e) {
-      procedureHtml = "<p>Errore procedura</p>";
-    }
-
     wrapper.innerHTML = `
-      <h3>${title}</h3>
-      <p class="descrizione">${desc}</p>
-      ${image}
-      <h4>Ingredienti</h4>
-      ${ingredientsHtml}
-      <h4>Procedimento</h4>
-      ${procedureHtml}
-      ${author}
-    `;
+    <h3>${title}</h3>
+    ${authorHtml}
+    ${imageHtml}
+    <p class="descrizione">${desc}</p>
+    <h4>Ingredienti</h4>
+    ${ingredientsHtml}
+  `;
+
+    // apri modal al click (non delegato) — passa l'oggetto recipe 'r'
+    wrapper.addEventListener("click", (ev) => {
+      // evita aprire modal se clicchi su un elemento interattivo (es. un link futuro)
+      openModal(r);
+    });
+
     return wrapper;
   }
 
@@ -316,3 +289,149 @@ document.addEventListener("DOMContentLoaded", () => {
   // carico ricette all'apertura
   loadRecipes();
 });
+
+/* ---------- Modal helpers ---------- */
+const modalRoot = document.getElementById("recipe-modal");
+const modalBackdrop = document.getElementById("modal-backdrop");
+const modalCloseBtn = document.getElementById("modal-close");
+const modalTitle = document.getElementById("modal-title");
+const modalAuthor = document.getElementById("modal-author");
+const modalImage = document.getElementById("modal-image");
+const modalDesc = document.getElementById("modal-description");
+const modalIngredients = document.getElementById("modal-ingredients");
+const modalProcedure = document.getElementById("modal-procedure");
+const modalSelect = document.getElementById("modal-select-target");
+const modalInputVal = document.getElementById("modal-input-target-value");
+const modalBtnApply = document.getElementById("modal-btn-apply");
+const modalBtnReset = document.getElementById("modal-btn-reset");
+
+function openModal(recipe) {
+  if (!modalRoot) return;
+  // popola titolo, autore, image, descrizione, procedimento
+  modalTitle.textContent = recipe.title || "Untitled";
+  modalAuthor.textContent = recipe.author ? `Autore: ${recipe.author}` : "";
+  if (recipe.image_url) {
+    modalImage.src = recipe.image_url;
+    modalImage.style.display = "block";
+  } else {
+    modalImage.style.display = "none";
+  }
+  modalDesc.textContent = recipe.description || "";
+
+  // ingredienti: ricreiamo la lista con originali e campo scalato (—)
+  modalIngredients.innerHTML = "";
+  const ings = Array.isArray(recipe.ingredients)
+    ? recipe.ingredients
+    : JSON.parse(recipe.ingredients || "[]");
+  ings.forEach((ing, idx) => {
+    const li = document.createElement("li");
+    li.setAttribute("data-name", ing.name || ing.nome || "");
+    li.setAttribute("data-qty", ing.qty != null ? ing.qty : "");
+    li.setAttribute("data-unit", ing.unit || "");
+    li.innerHTML = `
+      <span class="ing-left">${escapeText(ing.name || ing.nome || "")}</span>
+      <span class="ing-mid">Originale: <span class="orig-qty">${formatQty(
+        ing.qty,
+        ing.unit
+      )}</span> <span class="unit">${escapeText(ing.unit || "")}</span></span>
+      <span class="ing-right">Scalato: <span class="scaled-qty">—</span> <span class="unit-scaled">${escapeText(
+        ing.unit || ""
+      )}</span></span>
+    `;
+    modalIngredients.appendChild(li);
+  });
+
+  // riempi select target
+  modalSelect.innerHTML = "";
+  ings.forEach((ing, idx) => {
+    const opt = document.createElement("option");
+    opt.value = idx;
+    opt.textContent = `${ing.name} (${formatQty(ing.qty, ing.unit)} ${
+      ing.unit || ""
+    })`;
+    modalSelect.appendChild(opt);
+  });
+
+  // imposta default valore input con qty del primo ingrediente
+  if (ings.length > 0) modalInputVal.value = ings[0].qty;
+
+  // evento apply/reset (rimuove eventuali handler precedenti per sicurezza)
+  modalBtnApply.onclick = () => {
+    const idx = parseInt(modalSelect.value, 10);
+    const val = parseFloat(modalInputVal.value);
+    scalaRicettaModal(idx, val);
+  };
+  modalBtnReset.onclick = () => {
+    // azzera scalati
+    Array.from(modalIngredients.querySelectorAll(".scaled-qty")).forEach(
+      (el) => (el.textContent = "—")
+    );
+    // riporta input al valore originale dell'elemento selezionato
+    const idx = parseInt(modalSelect.value, 10);
+    if (!isNaN(idx) && ings[idx]) modalInputVal.value = ings[idx].qty;
+  };
+
+  // mostra modal
+  modalRoot.style.display = "block";
+  modalRoot.setAttribute("aria-hidden", "false");
+
+  // chiusura con backdrop / pulsante / Esc
+  modalBackdrop.onclick = closeModal;
+  modalCloseBtn.onclick = closeModal;
+  document.addEventListener("keydown", handleEscClose);
+}
+
+function closeModal() {
+  if (!modalRoot) return;
+  modalRoot.style.display = "none";
+  modalRoot.setAttribute("aria-hidden", "true");
+  // cleanup
+  modalBackdrop.onclick = null;
+  modalCloseBtn.onclick = null;
+  modalBtnApply.onclick = null;
+  modalBtnReset.onclick = null;
+  document.removeEventListener("keydown", handleEscClose);
+}
+
+function handleEscClose(e) {
+  if (e.key === "Escape") closeModal();
+}
+
+/* formatting helper (like before) */
+function formatQty(val, unit) {
+  if (!isFinite(val)) return "—";
+  if (unit && unit.toLowerCase().includes("pc")) return String(Math.round(val));
+  let s = Number(val).toFixed(2);
+  s = s.replace(/\.00$/, "");
+  s = s.replace(/(\.\d)0$/, "$1");
+  return s;
+}
+
+/* scalaRicettaModal: calcola e scrive i valori scalati nella lista del modal */
+function scalaRicettaModal(targetIndex, nuovoVal) {
+  const lis = Array.from(modalIngredients.querySelectorAll("li"));
+  if (!lis[targetIndex]) {
+    alert("Seleziona un ingrediente target valido.");
+    return;
+  }
+  if (!isFinite(nuovoVal) || nuovoVal <= 0) {
+    alert("Inserisci un valore numerico maggiore di 0.");
+    return;
+  }
+
+  const targetQty = parseFloat(lis[targetIndex].getAttribute("data-qty"));
+  if (!(targetQty > 0)) {
+    alert("Valore originale non valido per l'ingrediente selezionato.");
+    return;
+  }
+
+  const fattore = nuovoVal / targetQty;
+  lis.forEach((li) => {
+    const orig = parseFloat(li.getAttribute("data-qty"));
+    const unit = li.getAttribute("data-unit") || "";
+    const scaled = orig * fattore;
+    const display = formatQty(scaled, unit);
+    const scaledEl = li.querySelector(".scaled-qty");
+    if (scaledEl) scaledEl.textContent = display;
+  });
+}
