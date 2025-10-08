@@ -1,174 +1,425 @@
+/* RESET E BODY */
+* {
+  box-sizing: border-box;
+}
 body {
-  font-family: system-ui, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   background: #f4f4f9;
   color: #222;
-  padding: 20px;
-}
-
-.ricetta {
-  max-width: 800px;
-  margin: auto;
-  background: #fff;
-  padding: 20px 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-h1,
-h2 {
-  color: #333;
-}
-
-ul {
-  list-style: none;
+  margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-#lista-ingredienti li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fafafa;
-  padding: 8px 10px;
-  margin: 6px 0;
-  border-radius: 6px;
-  border: 1px solid #eee;
-}
-
-.ing-left {
-  font-weight: 600;
-  min-width: 120px;
-}
-
-.ing-mid,
-.ing-right {
-  font-size: 0.95em;
-}
-
-button {
-  padding: 5px 12px;
-  margin: 0 4px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #f0f0f0;
-}
-
-.scala-controls {
-  margin: 12px 0 18px;
-}
-
-/* layout cards ricette dentro #recipes-list */
-#recipes-list {
-  display: block;
-  gap: 24px;
-}
-
-/* stile per ogni card */
-#recipes-list .ricetta {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 18px;
-  margin-bottom: 20px; /* spazio tra le card */
-  box-shadow: 0 6px 18px rgba(22, 27, 33, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-
-/* piccolo effetto hover */
-#recipes-list .ricetta:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(22, 27, 33, 0.09);
-}
-
-/* titolo e immagine più leggibili */
-#recipes-list .ricetta h3 {
-  margin-top: 0;
-  margin-bottom: 6px;
-}
-#recipes-list .ricetta img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  margin: 8px 0;
-  border-radius: 8px;
-}
-
-/* responsività: meno padding su schermi piccoli */
-@media (max-width: 600px) {
-  #recipes-list .ricetta {
-    padding: 12px;
-    margin-bottom: 16px;
-  }
-}
-
-#form-nuova-ricetta {
-  max-width: 600px;
-  margin: 20px auto;
-  padding: 20px 25px;
-  background: #fff8f0;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-family: "Segoe UI", Roboto, sans-serif;
-}
-
-#form-nuova-ricetta h3 {
+/* HEADER */
+header {
+  background: #d35400;
+  color: #fff;
+  padding: 20px;
   text-align: center;
-  color: #d35400;
+}
+header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+header p {
+  margin: 6px 0 0;
+  opacity: 0.95;
 }
 
-#form-nuova-ricetta label {
-  font-weight: 600;
+/* FOOTER */
+footer {
+  background: #222;
+  color: #fff;
+  text-align: center;
+  padding: 12px;
+  margin-top: 20px;
+}
+
+/* MAIN LAYOUT: FLEX */
+main {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* SIDEBAR */
+.sidebar {
+  flex: 0 0 320px;
+  background: #fff8f0;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  height: fit-content;
+}
+
+/* BOTTONE AGGIUNGI RICETTA (BELLO) */
+#btn-add-recipe {
   display: block;
-  margin-bottom: 6px;
-  color: #333;
+  width: 100%;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  background-color: #d35400; /* arancio del tema */
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    background-color 0.12s;
+  box-shadow: 0 6px 18px rgba(211, 84, 0, 0.12);
+}
+#btn-add-recipe:hover {
+  background-color: #e67e22;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 26px rgba(211, 84, 0, 0.14);
 }
 
+/* FORM - stili coerenti con tema */
+#form-nuova-ricetta {
+  display: none; /* gestito da JS */
+  margin-top: 8px;
+  padding: 18px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff8f0 0%, #fffaf6 100%);
+  border: 1px solid #f3e1cf;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+#form-nuova-ricetta h3 {
+  margin: 0 0 12px;
+  color: #d35400;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* inputs generali dentro il form */
 #form-nuova-ricetta input,
 #form-nuova-ricetta textarea {
   width: 100%;
   padding: 8px 10px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid #dcd6cf;
   font-size: 14px;
-  box-sizing: border-box;
+  background: #fff;
+  color: #222;
 }
 
+/* bottoni del form */
 #form-nuova-ricetta button {
-  padding: 8px 16px;
+  padding: 8px 14px;
   margin-right: 8px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: #d35400;
   color: #fff;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
 }
-
 #form-nuova-ricetta button:hover {
   background-color: #e67e22;
 }
 
+/* BOTTONE AGGIUNGI INGREDIENTE */
+#btn-add-ingredient {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #d35400;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+#btn-add-ingredient:hover {
+  background-color: #e67e22;
+}
+
+/* INGREDIENTI - disposizione e larghezze */
 .ingrediente-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
+/* campo NOME più largo forzato */
+.ingrediente-row .ing-nome {
+  flex: 2 !important;
+  min-width: 160px !important;
+}
+
+/* quantità e unità più piccole */
+.ingrediente-row .ing-qty {
+  flex: 0 0 90px !important;
+  min-width: 70px !important;
+}
+.ingrediente-row .ing-unit {
+  flex: 0 0 80px !important;
+  min-width: 60px !important;
+}
+
+/* stile generico input di riga ingrediente */
 .ingrediente-row input {
-  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #dcd6cf;
+  font-size: 14px;
+  background: #fff;
 }
 
+/* bottone rimuovi ingrediente */
 .ingrediente-row .btn-remove-ing {
   background-color: #c0392b;
   color: #fff;
-  padding: 4px 10px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
-
 .ingrediente-row .btn-remove-ing:hover {
   background-color: #e74c3c;
+}
+
+/* CAMPO PROCEDIMENTO: larghezza base 500 ma responsive */
+#nuovo-procedimento {
+  width: 500px;
+  max-width: 100%;
+  min-height: 120px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #dcd6cf;
+  resize: vertical;
+  font-size: 14px;
+  background: #fff;
+}
+
+/* RECIPES LIST: griglia responsiva */
+#recipes-list {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  align-items: start;
+  padding-bottom: 10px;
+}
+
+/* CARD RICETTE - tema coerente con il form */
+#recipes-list .ricetta {
+  position: relative;
+  background: linear-gradient(180deg, #fffdf9 0%, #fffaf6 100%);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 8px 20px rgba(211, 84, 0, 0.06);
+  border: 1px solid #f3e1cf;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  overflow: hidden;
+}
+
+/* barra decorativa superiore */
+#recipes-list .ricetta::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #d35400, #f39c12);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+/* hover */
+#recipes-list .ricetta:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(211, 84, 0, 0.12);
+}
+
+/* titolo */
+#recipes-list .ricetta h3 {
+  margin: 0 0 6px;
+  color: #d35400;
+  font-size: 1.15rem;
+}
+
+/* autore e meta */
+#recipes-list .ricetta .autore {
+  color: #6b6b6b;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+/* descrizione */
+#recipes-list .ricetta .descrizione {
+  color: #333;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* ingredienti come pill */
+#recipes-list .ricetta ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+#recipes-list .ricetta ul li {
+  background: #fff8f0;
+  border: 1px solid #f5d6b1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+/* procedimento */
+#recipes-list .ricetta ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #444;
+}
+
+/* immagine (se presente) */
+#recipes-list .ricetta img {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+/* RESPONSIVITÀ */
+@media (max-width: 900px) {
+  main {
+    flex-direction: column;
+    padding: 16px;
+  }
+  .sidebar {
+    width: 100%;
+    order: 0;
+  }
+  #recipes-list {
+    order: 1;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  #nuovo-procedimento {
+    width: 100%;
+  }
+}
+
+/* -----------------------
+   Animazione inserimento card
+   ----------------------- */
+@keyframes cardIn {
+  from {
+    transform: translateY(12px) scale(0.995);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* classe temporanea applicata dal JS quando aggiungi una card */
+.ricetta.new {
+  animation: cardIn 360ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+/* piccola transizione quando il contenuto cambia */
+.ricetta {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+/* -----------------------
+   Ingredienti: più spazio e scroll se diventano molti
+   ----------------------- */
+/* contenitore ingredienti nel form: massimo altezza con scroll */
+#ingredienti-container {
+  max-height: 320px; /* cambia se vuoi più o meno spazio */
+  overflow-y: auto;
+  padding-right: 6px; /* spazio per la scrollbar */
+  margin-bottom: 8px;
+}
+
+/* riga ingrediente: più padding, bordo leggero e gap */
+.ingrediente-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+/* input della riga: padding maggiore e box più leggibile */
+.ingrediente-row input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e6d9cc;
+  background: #fff;
+}
+
+/* assicurati che il nome resti largo anche su schermi stretti */
+.ingrediente-row .ing-nome {
+  flex: 2 !important;
+  min-width: 160px !important;
+}
+
+/* quantità e unità: larghezza fissa comoda */
+.ingrediente-row .ing-qty {
+  flex: 0 0 95px !important;
+  min-width: 70px;
+}
+.ingrediente-row .ing-unit {
+  flex: 0 0 85px !important;
+  min-width: 60px;
+}
+
+/* bottone rimuovi più leggibile */
+.ingrediente-row .btn-remove-ing {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+/* -----------------------
+   Micro-migliorie estetiche
+   ----------------------- */
+#form-nuova-ricetta {
+  border: 1px solid #f2dfcb;
+}
+
+#btn-save-recipe {
+  background: linear-gradient(180deg, #d35400, #c94a00);
+  box-shadow: 0 6px 18px rgba(201, 74, 0, 0.12);
+}
+#btn-save-recipe:hover {
+  transform: translateY(-2px);
+}
+
+/* piccolo effetto "pulse" quando si clicca aggiungi ingrediente */
+#btn-add-ingredient:active {
+  transform: scale(0.98);
+}
+
+/* Riduci leggermente lo spazio della card su mobile per compattezza */
+@media (max-width: 600px) {
+  #recipes-list {
+    gap: 12px;
+  }
+  .ricetta {
+    padding: 14px;
+  }
+  .ingrediente-row .ing-nome {
+    min-width: 120px !important;
+  }
 }

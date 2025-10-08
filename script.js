@@ -15,8 +15,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.createElement("div");
     container.id = "recipes-list";
     // inserisco prima del main content se c'è, altrimenti in cima al body
-    const main = document.querySelector(".ricetta") || document.body.firstChild;
-    if (main && main.parentNode) main.parentNode.insertBefore(container, main);
+    const main = document.querySelector("main") || document.body.firstChild;
+    if (main && main.parentNode)
+      main.parentNode.insertBefore(container, main.nextSibling);
     else document.body.insertBefore(container, document.body.firstChild);
     return container;
   }
@@ -30,6 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ingredientiContainer.innerHTML = "";
         addIngredienteRow();
       }
+      // sposta focus sul titolo per comodità
+      const t = document.getElementById("nuovo-titolo");
+      if (t) t.focus();
     });
   }
 
@@ -44,17 +48,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!ingredientiContainer) return;
     const div = document.createElement("div");
     div.className = "ingrediente-row";
-    div.style.marginBottom = "8px";
     div.innerHTML = `
       <input type="text" class="ing-nome" placeholder="Nome ingrediente" value="${escapeHtml(
         name
       )}" />
       <input type="number" class="ing-qty" placeholder="Quantità" value="${escapeHtml(
         qty
-      )}" style="width:100px" />
+      )}" />
       <input type="text" class="ing-unit" placeholder="Unità" value="${escapeHtml(
         unit
-      )}" style="width:80px" />
+      )}" />
       <button type="button" class="btn-remove-ing">Rimuovi</button>
     `;
     ingredientiContainer.appendChild(div);
@@ -64,6 +67,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnRemove) {
       btnRemove.addEventListener("click", () => div.remove());
     }
+
+    // scrolla in basso per mostrare il nuovo campo (animato)
+    ingredientiContainer.scrollTo({
+      top: ingredientiContainer.scrollHeight,
+      behavior: "smooth",
+    });
+
+    // focus sul nome appena creato
+    const nomeInput = div.querySelector(".ing-nome");
+    if (nomeInput) nomeInput.focus();
   }
 
   // escape semplice per valori inseriti in value attr
@@ -100,7 +113,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       recipes.forEach((r) => {
         const el = renderRecipe(r);
+
+        // aggiungo animazione di ingresso
+        el.classList.add("new");
         recipesList.appendChild(el);
+
+        // rimuovo la classe new dopo l'animazione
+        setTimeout(() => {
+          el.classList.remove("new");
+        }, 700);
       });
     } catch (err) {
       console.error("loadRecipes error:", err);
@@ -115,12 +136,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = escapeText(r.title || "Untitled");
     const desc = escapeText(r.description || "");
     const author = r.author
-      ? `<p class="author">Autore: ${escapeText(r.author)}</p>`
+      ? `<p class="autore">Autore: ${escapeText(r.author)}</p>`
       : "";
     const image = r.image_url
       ? `<img src="${escapeText(
           r.image_url
-        )}" alt="${title}" style="max-width:220px;margin:8px 0;border-radius:6px">`
+        )}" alt="${title}" class="recipe-image">`
       : "";
     let ingredientsHtml = "<ul>";
     try {
@@ -181,7 +202,6 @@ document.addEventListener("DOMContentLoaded", () => {
       <h4>Procedimento</h4>
       ${procedureHtml}
       ${author}
-      <hr/>
     `;
     return wrapper;
   }
@@ -197,14 +217,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- salva la nuova ricetta sul DB (POST) ----------
   if (btnSave) {
     btnSave.addEventListener("click", async () => {
-      const titolo = document.getElementById("nuovo-titolo").value.trim();
-      const autore = document.getElementById("nuovo-autore").value.trim();
-      const descrizione = document
-        .getElementById("nuova-descrizione")
-        .value.trim();
-      const procedimento = document
-        .getElementById("nuovo-procedimento")
-        .value.trim();
+      const titoloEl = document.getElementById("nuovo-titolo");
+      const autoreEl = document.getElementById("nuovo-autore");
+      const descrizioneEl = document.getElementById("nuova-descrizione");
+      const procedimentoEl = document.getElementById("nuovo-procedimento");
+
+      const titolo = titoloEl ? titoloEl.value.trim() : "";
+      const autore = autoreEl ? autoreEl.value.trim() : "";
+      const descrizione = descrizioneEl ? descrizioneEl.value.trim() : "";
+      const procedimento = procedimentoEl ? procedimentoEl.value.trim() : "";
 
       if (!titolo) {
         alert("Inserisci il titolo della ricetta!");
@@ -217,11 +238,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // raccogli ingredienti
       const ingredientiArr = [];
-      document.querySelectorAll(".ingrediente-row").forEach((row) => {
-        const nome = row.querySelector(".ing-nome").value.trim();
-        const qty = parseFloat(row.querySelector(".ing-qty").value);
-        const unit = row.querySelector(".ing-unit").value.trim();
-
+      (ingredientiContainer
+        ? ingredientiContainer.querySelectorAll(".ingrediente-row")
+        : []
+      ).forEach((row) => {
+        const nomeEl = row.querySelector(".ing-nome");
+        const qtyEl = row.querySelector(".ing-qty");
+        const unitEl = row.querySelector(".ing-unit");
+        const nome = nomeEl ? nomeEl.value.trim() : "";
+        const qty = qtyEl ? parseFloat(qtyEl.value) : NaN;
+        const unit = unitEl ? unitEl.value.trim() : "";
         if (nome && !isNaN(qty)) {
           ingredientiArr.push({ name: nome, qty, unit });
         }
@@ -240,6 +266,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ingredients: ingredientiArr,
       };
 
+      // disabilita il bottone mentre invia
+      btnSave.disabled = true;
+      btnSave.textContent = "Salvo...";
+
       try {
         const res = await fetch("/.netlify/functions/create-recipe", {
           method: "POST",
@@ -247,13 +277,34 @@ document.addEventListener("DOMContentLoaded", () => {
           body: JSON.stringify(body),
         });
 
-        if (!res.ok) throw new Error("Errore durante il salvataggio");
-        alert("Ricetta salvata con successo!");
-        formNuova.style.display = "none";
-        loadRecipes(); // ricarica la lista
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          console.error("create-recipe failed:", data);
+          alert("Errore durante il salvataggio. Controlla console.");
+        } else {
+          // successo: pulisco il form e ricarico la lista
+          alert("Ricetta salvata con successo!");
+          formNuova.style.display = "none";
+
+          // pulizia input
+          if (titoloEl) titoloEl.value = "";
+          if (autoreEl) autoreEl.value = "";
+          if (descrizioneEl) descrizioneEl.value = "";
+          if (procedimentoEl) procedimentoEl.value = "";
+          if (ingredientiContainer) ingredientiContainer.innerHTML = "";
+
+          // aggiungo una riga ingredient di default per la prossima apertura del form
+          if (ingredientiContainer) addIngredienteRow();
+
+          await loadRecipes();
+        }
       } catch (err) {
         console.error("Errore:", err);
         alert("Errore nel salvataggio della ricetta.");
+      } finally {
+        btnSave.disabled = false;
+        btnSave.textContent = "Salva ricetta";
       }
     });
   }

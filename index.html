@@ -7,49 +7,55 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <button id="btn-add-recipe">Aggiungi ricetta</button>
+    <!-- HEADER -->
+    <header>
+      <h1>Ricette Scalabili</h1>
+      <p>Crea e scala le tue ricette preferite!</p>
+    </header>
 
-    <div id="form-nuova-ricetta" style="display: none; margin-top: 20px">
-      <h3>Nuova ricetta</h3>
+    <!-- MAIN LAYOUT -->
+    <main>
+      <!-- SIDEBAR SINISTRA -->
+      <aside class="sidebar">
+        <button id="btn-add-recipe">Aggiungi ricetta</button>
 
-      <label for="nuovo-titolo">Titolo:</label>
-      <input
-        type="text"
-        id="nuovo-titolo"
-        placeholder="Titolo ricetta"
-        required
-      /><br /><br />
+        <div id="form-nuova-ricetta" style="display: none">
+          <h3>Nuova ricetta</h3>
 
-      <label for="nuovo-autore">Autore:</label>
-      <input
-        type="text"
-        id="nuovo-autore"
-        placeholder="Il tuo nome"
-        required
-      /><br /><br />
+          <label for="nuovo-titolo">Titolo:</label>
+          <input type="text" id="nuovo-titolo" placeholder="Titolo ricetta" />
 
-      <label for="nuova-descrizione">Descrizione:</label>
-      <textarea id="nuova-descrizione" placeholder="Descrizione"></textarea
-      ><br /><br />
+          <label for="nuovo-autore">Autore:</label>
+          <input type="text" id="nuovo-autore" placeholder="Il tuo nome" />
 
-      <h4>Ingredienti</h4>
-      <div id="ingredienti-container"></div>
-      <button type="button" id="btn-add-ingredient">Aggiungi ingrediente</button
-      ><br /><br />
+          <label for="nuova-descrizione">Descrizione:</label>
+          <textarea id="nuova-descrizione" placeholder="Descrizione"></textarea>
 
-      <label for="nuovo-procedimento">Procedimento:</label>
-      <textarea
-        id="nuovo-procedimento"
-        placeholder="Procedimento (passo per passo)"
-      ></textarea
-      ><br /><br />
+          <h4>Ingredienti</h4>
+          <div id="ingredienti-container"></div>
+          <button type="button" id="btn-add-ingredient">
+            Aggiungi ingrediente
+          </button>
 
-      <button type="button" id="btn-save-recipe">Salva ricetta</button>
-      <button type="button" id="btn-cancel-recipe">Annulla</button>
-    </div>
+          <label for="nuovo-procedimento">Procedimento:</label>
+          <textarea
+            id="nuovo-procedimento"
+            placeholder="Procedimento"
+          ></textarea>
 
-    <!-- display list -->
-    <div id="recipes-list"></div>
+          <button type="button" id="btn-save-recipe">Salva ricetta</button>
+          <button type="button" id="btn-cancel-recipe">Annulla</button>
+        </div>
+      </aside>
+
+      <!-- COLONNA CARD RICETTE -->
+      <section id="recipes-list"></section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>© 2025 Ricette Scalabili - Tutti i diritti riservati</p>
+    </footer>
 
     <script src="script.js"></script>
   </body>
