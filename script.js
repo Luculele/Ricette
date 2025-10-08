@@ -149,45 +149,69 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderRecipe(r) {
     const wrapper = document.createElement("article");
     wrapper.className = "ricetta";
-    const title = escapeText(r.title || "Untitled");
-    const desc = escapeText(r.description || "");
-    const authorHtml = r.author
-      ? `<p class="autore">Autore: ${escapeText(r.author)}</p>`
-      : "";
-    const imageHtml = r.image_url
-      ? `<img src="${escapeText(
-          r.image_url
-        )}" alt="${title}" class="recipe-image">`
-      : "";
 
-    // build ingredients html (but we keep data on the recipe object for modal)
-    let ingredientsHtml = "<ul>";
+    const title = escapeText(r.title || "Untitled");
+    const authorText = r.author ? escapeText(r.author) : "";
+    const descFull = r.description ? String(r.description).trim() : "";
+
+    // costruisco lista ingredienti (array reale)
+    let ingsArray = [];
     try {
-      const ings = Array.isArray(r.ingredients)
+      ingsArray = Array.isArray(r.ingredients)
         ? r.ingredients
         : JSON.parse(r.ingredients || "[]");
-      ings.forEach((ing) => {
-        const name = escapeText(ing.name || ing.nome || "");
-        const qty = escapeText(ing.qty != null ? ing.qty : "");
-        const unit = escapeText(ing.unit || "");
-        ingredientsHtml += `<li>${name}: <span class="modal-qty">${qty}</span> <span class="modal-unit">${unit}</span></li>`;
-      });
     } catch (e) {
-      ingredientsHtml += "<li>Errore leggendo ingredienti</li>";
+      ingsArray = [];
     }
-    ingredientsHtml += "</ul>";
 
+    // breve descrizione (renderizzata troncata via CSS)
+    const descShort = escapeText(descFull);
+
+    // prima immagine piccola (se presente)
+    const imgHtml = r.image_url
+      ? `<img class="recipe-image" src="${escapeText(
+          r.image_url
+        )}" alt="${title}">`
+      : "";
+
+    // ingredienti brevi: prendo i primi 3
+    const N = 3;
+    let briefIngHtml = "<ul>";
+    const toShow = ingsArray.slice(0, N);
+    toShow.forEach((ing) => {
+      const name = escapeText(ing.name || ing.nome || "");
+      const qty = ing.qty != null ? escapeText(ing.qty) : "";
+      const unit = escapeText(ing.unit || "");
+      briefIngHtml += `<li>${name}: ${qty} ${unit}</li>`;
+    });
+    briefIngHtml += "</ul>";
+
+    // se ci sono altri ingredienti, badge +N altri
+    const others = Math.max(0, ingsArray.length - toShow.length);
+    const moreBadge =
+      others > 0 ? `<div class="more-badge">+${others} altri</div>` : "";
+
+    // innerHTML: titolo, autore, descrizione corta, immagine, breve lista ingredienti
     wrapper.innerHTML = `
-    <h3>${title}</h3>
-    ${authorHtml}
-    ${imageHtml}
-    <p class="descrizione">${desc}</p>
-    <h4>Ingredienti</h4>
-    ${ingredientsHtml}
+    <div class="meta-top">
+      <h3>${title}</h3>
+      ${authorText ? `<div class="autore">Autore: ${authorText}</div>` : ""}
+    </div>
+
+    ${imgHtml}
+
+    <p class="descrizione">${descShort}</p>
+
+    <div class="brief-ingredients">
+      <strong>Ingredienti principali</strong>
+      ${briefIngHtml}
+      ${moreBadge}
+    </div>
   `;
 
-    // apri modal al click (non delegato) — passa l'oggetto recipe 'r'
+    // apertura modal al click: mostra dettagli completi (titolo, autore, descrizione, ingredienti con calcolo, procedimento)
     wrapper.addEventListener("click", (ev) => {
+      // non interferire se l'utente clicca su eventuali bottoni futuri
       openModal(r);
     });
 
