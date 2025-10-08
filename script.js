@@ -1,6 +1,17 @@
 // script.js — versione aggiornata: carica dal DB, form dinamico, POST su Netlify Functions
 document.addEventListener("DOMContentLoaded", () => {
   // DOM references (verifica esistenza)
+  // Escape semplice per testo da mostrare in HTML (evita injection)
+  function escapeText(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   const recipesList =
     document.getElementById("recipes-list") || createRecipesList();
   const btnAdd = document.getElementById("btn-add-recipe");
