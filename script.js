@@ -1,7 +1,8 @@
-// script.js — versione aggiornata: carica dal DB, form dinamico, POST su Netlify Functions
+// script.js — versione corretta: tutto dentro DOMContentLoaded (escapeText accessibile alle funzioni del modal)
 document.addEventListener("DOMContentLoaded", () => {
-  // DOM references (verifica esistenza)
-  // Escape semplice per testo da mostrare in HTML (evita injection)
+  // -------------------------
+  // Helper per escaping
+  // -------------------------
   function escapeText(str) {
     if (str === null || str === undefined) return "";
     return String(str)
@@ -12,6 +13,17 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, "&#39;");
   }
 
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return "";
+    return String(s)
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // -------------------------
+  // DOM refs principali
+  // -------------------------
   const recipesList =
     document.getElementById("recipes-list") || createRecipesList();
   const btnAdd = document.getElementById("btn-add-recipe");
@@ -21,7 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const ingredientiContainer = document.getElementById("ingredienti-container");
   const btnAddIngredient = document.getElementById("btn-add-ingredient");
 
+  // -------------------------
   // helper: se non esiste recipes-list lo crea
+  // -------------------------
   function createRecipesList() {
     const container = document.createElement("div");
     container.id = "recipes-list";
@@ -88,15 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // focus sul nome appena creato
     const nomeInput = div.querySelector(".ing-nome");
     if (nomeInput) nomeInput.focus();
-  }
-
-  // escape semplice per valori inseriti in value attr
-  function escapeHtml(s) {
-    if (s === null || s === undefined) return "";
-    return String(s)
-      .replace(/"/g, "&quot;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
   }
 
   // bind sul bottone "Aggiungi ingrediente"
@@ -183,22 +188,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // apri modal al click (non delegato) — passa l'oggetto recipe 'r'
     wrapper.addEventListener("click", (ev) => {
-      // evita aprire modal se clicchi su un elemento interattivo (es. un link futuro)
       openModal(r);
     });
 
     return wrapper;
   }
 
-  function escapeText(s) {
-    if (s === null || s === undefined) return "";
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
-
-  // ---------- salva la nuova ricetta sul DB (POST) ----------
+  // -------------------------
+  // Salvataggio nuova ricetta (POST)
+  // -------------------------
   if (btnSave) {
     btnSave.addEventListener("click", async () => {
       const titoloEl = document.getElementById("nuovo-titolo");
@@ -299,150 +297,161 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // carico ricette all'apertura
   loadRecipes();
-});
 
-/* ---------- Modal helpers ---------- */
-const modalRoot = document.getElementById("recipe-modal");
-const modalBackdrop = document.getElementById("modal-backdrop");
-const modalCloseBtn = document.getElementById("modal-close");
-const modalTitle = document.getElementById("modal-title");
-const modalAuthor = document.getElementById("modal-author");
-const modalImage = document.getElementById("modal-image");
-const modalDesc = document.getElementById("modal-description");
-const modalIngredients = document.getElementById("modal-ingredients");
-const modalProcedure = document.getElementById("modal-procedure");
-const modalSelect = document.getElementById("modal-select-target");
-const modalInputVal = document.getElementById("modal-input-target-value");
-const modalBtnApply = document.getElementById("modal-btn-apply");
-const modalBtnReset = document.getElementById("modal-btn-reset");
+  // -------------------------
+  // Modal helpers (dentro DOMContentLoaded così vedono escapeText)
+  // -------------------------
+  const modalRoot = document.getElementById("recipe-modal");
+  const modalBackdrop = document.getElementById("modal-backdrop");
+  const modalCloseBtn = document.getElementById("modal-close");
+  const modalTitle = document.getElementById("modal-title");
+  const modalAuthor = document.getElementById("modal-author");
+  const modalImage = document.getElementById("modal-image");
+  const modalDesc = document.getElementById("modal-description");
+  const modalIngredients = document.getElementById("modal-ingredients");
+  const modalProcedure = document.getElementById("modal-procedure");
+  const modalSelect = document.getElementById("modal-select-target");
+  const modalInputVal = document.getElementById("modal-input-target-value");
+  const modalBtnApply = document.getElementById("modal-btn-apply");
+  const modalBtnReset = document.getElementById("modal-btn-reset");
 
-function openModal(recipe) {
-  if (!modalRoot) return;
-  // popola titolo, autore, image, descrizione, procedimento
-  modalTitle.textContent = recipe.title || "Untitled";
-  modalAuthor.textContent = recipe.author ? `Autore: ${recipe.author}` : "";
-  if (recipe.image_url) {
-    modalImage.src = recipe.image_url;
-    modalImage.style.display = "block";
-  } else {
-    modalImage.style.display = "none";
-  }
-  modalDesc.textContent = recipe.description || "";
+  function openModal(recipe) {
+    if (!modalRoot) return;
+    // popola titolo, autore, image, descrizione, procedimento
+    modalTitle.textContent = recipe.title || "Untitled";
+    modalAuthor.textContent = recipe.author ? `Autore: ${recipe.author}` : "";
+    if (recipe.image_url) {
+      modalImage.src = recipe.image_url;
+      modalImage.style.display = "block";
+    } else {
+      if (modalImage) modalImage.style.display = "none";
+    }
+    modalDesc.textContent = recipe.description || "";
 
-  // ingredienti: ricreiamo la lista con originali e campo scalato (—)
-  modalIngredients.innerHTML = "";
-  const ings = Array.isArray(recipe.ingredients)
-    ? recipe.ingredients
-    : JSON.parse(recipe.ingredients || "[]");
-  ings.forEach((ing, idx) => {
-    const li = document.createElement("li");
-    li.setAttribute("data-name", ing.name || ing.nome || "");
-    li.setAttribute("data-qty", ing.qty != null ? ing.qty : "");
-    li.setAttribute("data-unit", ing.unit || "");
-    li.innerHTML = `
-      <span class="ing-left">${escapeText(ing.name || ing.nome || "")}</span>
-      <span class="ing-mid">Originale: <span class="orig-qty">${formatQty(
-        ing.qty,
-        ing.unit
-      )}</span> <span class="unit">${escapeText(ing.unit || "")}</span></span>
-      <span class="ing-right">Scalato: <span class="scaled-qty">—</span> <span class="unit-scaled">${escapeText(
-        ing.unit || ""
-      )}</span></span>
-    `;
-    modalIngredients.appendChild(li);
-  });
+    // ingredienti: ricreiamo la lista con originali e campo scalato (—)
+    if (!modalIngredients) return;
+    modalIngredients.innerHTML = "";
+    const ings = Array.isArray(recipe.ingredients)
+      ? recipe.ingredients
+      : JSON.parse(recipe.ingredients || "[]");
+    ings.forEach((ing, idx) => {
+      const li = document.createElement("li");
+      li.setAttribute("data-name", ing.name || ing.nome || "");
+      li.setAttribute("data-qty", ing.qty != null ? ing.qty : "");
+      li.setAttribute("data-unit", ing.unit || "");
+      li.innerHTML = `
+        <span class="ing-left">${escapeText(ing.name || ing.nome || "")}</span>
+        <span class="ing-mid">Originale: <span class="orig-qty">${formatQty(
+          ing.qty,
+          ing.unit
+        )}</span> <span class="unit">${escapeText(ing.unit || "")}</span></span>
+        <span class="ing-right">Scalato: <span class="scaled-qty">—</span> <span class="unit-scaled">${escapeText(
+          ing.unit || ""
+        )}</span></span>
+      `;
+      modalIngredients.appendChild(li);
+    });
 
-  // riempi select target
-  modalSelect.innerHTML = "";
-  ings.forEach((ing, idx) => {
-    const opt = document.createElement("option");
-    opt.value = idx;
-    opt.textContent = `${ing.name} (${formatQty(ing.qty, ing.unit)} ${
-      ing.unit || ""
-    })`;
-    modalSelect.appendChild(opt);
-  });
+    // riempi select target
+    if (modalSelect) {
+      modalSelect.innerHTML = "";
+      ings.forEach((ing, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.textContent = `${ing.name} (${formatQty(ing.qty, ing.unit)} ${
+          ing.unit || ""
+        })`;
+        modalSelect.appendChild(opt);
+      });
+    }
 
-  // imposta default valore input con qty del primo ingrediente
-  if (ings.length > 0) modalInputVal.value = ings[0].qty;
+    // imposta default valore input con qty del primo ingrediente
+    if (modalInputVal && ings.length > 0) modalInputVal.value = ings[0].qty;
 
-  // evento apply/reset (rimuove eventuali handler precedenti per sicurezza)
-  modalBtnApply.onclick = () => {
-    const idx = parseInt(modalSelect.value, 10);
-    const val = parseFloat(modalInputVal.value);
-    scalaRicettaModal(idx, val);
-  };
-  modalBtnReset.onclick = () => {
-    // azzera scalati
-    Array.from(modalIngredients.querySelectorAll(".scaled-qty")).forEach(
-      (el) => (el.textContent = "—")
-    );
-    // riporta input al valore originale dell'elemento selezionato
-    const idx = parseInt(modalSelect.value, 10);
-    if (!isNaN(idx) && ings[idx]) modalInputVal.value = ings[idx].qty;
-  };
+    // evento apply/reset (rimuove eventuali handler precedenti per sicurezza)
+    if (modalBtnApply) {
+      modalBtnApply.onclick = () => {
+        const idx = parseInt(modalSelect.value, 10);
+        const val = parseFloat(modalInputVal.value);
+        scalaRicettaModal(idx, val);
+      };
+    }
+    if (modalBtnReset) {
+      modalBtnReset.onclick = () => {
+        // azzera scalati
+        Array.from(modalIngredients.querySelectorAll(".scaled-qty")).forEach(
+          (el) => (el.textContent = "—")
+        );
+        // riporta input al valore originale dell'elemento selezionato
+        const idx = parseInt(modalSelect.value, 10);
+        if (!isNaN(idx) && ings[idx]) modalInputVal.value = ings[idx].qty;
+      };
+    }
 
-  // mostra modal
-  modalRoot.style.display = "block";
-  modalRoot.setAttribute("aria-hidden", "false");
+    // mostra modal
+    modalRoot.style.display = "block";
+    modalRoot.setAttribute("aria-hidden", "false");
 
-  // chiusura con backdrop / pulsante / Esc
-  modalBackdrop.onclick = closeModal;
-  modalCloseBtn.onclick = closeModal;
-  document.addEventListener("keydown", handleEscClose);
-}
-
-function closeModal() {
-  if (!modalRoot) return;
-  modalRoot.style.display = "none";
-  modalRoot.setAttribute("aria-hidden", "true");
-  // cleanup
-  modalBackdrop.onclick = null;
-  modalCloseBtn.onclick = null;
-  modalBtnApply.onclick = null;
-  modalBtnReset.onclick = null;
-  document.removeEventListener("keydown", handleEscClose);
-}
-
-function handleEscClose(e) {
-  if (e.key === "Escape") closeModal();
-}
-
-/* formatting helper (like before) */
-function formatQty(val, unit) {
-  if (!isFinite(val)) return "—";
-  if (unit && unit.toLowerCase().includes("pc")) return String(Math.round(val));
-  let s = Number(val).toFixed(2);
-  s = s.replace(/\.00$/, "");
-  s = s.replace(/(\.\d)0$/, "$1");
-  return s;
-}
-
-/* scalaRicettaModal: calcola e scrive i valori scalati nella lista del modal */
-function scalaRicettaModal(targetIndex, nuovoVal) {
-  const lis = Array.from(modalIngredients.querySelectorAll("li"));
-  if (!lis[targetIndex]) {
-    alert("Seleziona un ingrediente target valido.");
-    return;
-  }
-  if (!isFinite(nuovoVal) || nuovoVal <= 0) {
-    alert("Inserisci un valore numerico maggiore di 0.");
-    return;
+    // chiusura con backdrop / pulsante / Esc
+    if (modalBackdrop) modalBackdrop.onclick = closeModal;
+    if (modalCloseBtn) modalCloseBtn.onclick = closeModal;
+    document.addEventListener("keydown", handleEscClose);
   }
 
-  const targetQty = parseFloat(lis[targetIndex].getAttribute("data-qty"));
-  if (!(targetQty > 0)) {
-    alert("Valore originale non valido per l'ingrediente selezionato.");
-    return;
+  function closeModal() {
+    if (!modalRoot) return;
+    modalRoot.style.display = "none";
+    modalRoot.setAttribute("aria-hidden", "true");
+    // cleanup
+    if (modalBackdrop) modalBackdrop.onclick = null;
+    if (modalCloseBtn) modalCloseBtn.onclick = null;
+    if (modalBtnApply) modalBtnApply.onclick = null;
+    if (modalBtnReset) modalBtnReset.onclick = null;
+    document.removeEventListener("keydown", handleEscClose);
   }
 
-  const fattore = nuovoVal / targetQty;
-  lis.forEach((li) => {
-    const orig = parseFloat(li.getAttribute("data-qty"));
-    const unit = li.getAttribute("data-unit") || "";
-    const scaled = orig * fattore;
-    const display = formatQty(scaled, unit);
-    const scaledEl = li.querySelector(".scaled-qty");
-    if (scaledEl) scaledEl.textContent = display;
-  });
-}
+  function handleEscClose(e) {
+    if (e.key === "Escape") closeModal();
+  }
+
+  /* formatting helper (like before) */
+  function formatQty(val, unit) {
+    if (!isFinite(val)) return "—";
+    if (unit && unit.toLowerCase().includes("pc"))
+      return String(Math.round(val));
+    let s = Number(val).toFixed(2);
+    s = s.replace(/\.00$/, "");
+    s = s.replace(/(\.\d)0$/, "$1");
+    return s;
+  }
+
+  /* scalaRicettaModal: calcola e scrive i valori scalati nella lista del modal */
+  function scalaRicettaModal(targetIndex, nuovoVal) {
+    if (!modalIngredients) return;
+    const lis = Array.from(modalIngredients.querySelectorAll("li"));
+    if (!lis[targetIndex]) {
+      alert("Seleziona un ingrediente target valido.");
+      return;
+    }
+    if (!isFinite(nuovoVal) || nuovoVal <= 0) {
+      alert("Inserisci un valore numerico maggiore di 0.");
+      return;
+    }
+
+    const targetQty = parseFloat(lis[targetIndex].getAttribute("data-qty"));
+    if (!(targetQty > 0)) {
+      alert("Valore originale non valido per l'ingrediente selezionato.");
+      return;
+    }
+
+    const fattore = nuovoVal / targetQty;
+    lis.forEach((li) => {
+      const orig = parseFloat(li.getAttribute("data-qty"));
+      const unit = li.getAttribute("data-unit") || "";
+      const scaled = orig * fattore;
+      const display = formatQty(scaled, unit);
+      const scaledEl = li.querySelector(".scaled-qty");
+      if (scaledEl) scaledEl.textContent = display;
+    });
+  }
+}); // fine DOMContentLoaded
