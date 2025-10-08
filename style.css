@@ -541,11 +541,13 @@ main {
   box-shadow: none;
 }
 
-/* procedure */
+/* modal procedure */
 #modal-procedure {
-  margin-top: 6px;
-  color: #444;
-  line-height: 1.5;
+  margin-top: 12px;
+  color: #333;
+  line-height: 1.4;
+  font-size: 0.95rem;
+  white-space: pre-wrap; /* mantiene ritorni a capo */
 }
 
 /* responsive */

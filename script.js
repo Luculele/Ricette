@@ -412,6 +412,12 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
 
+    if (modalProcedure) {
+      modalProcedure.textContent = recipe.procedure
+        ? String(recipe.procedure).trim()
+        : "—";
+    }
+
     // mostra modal
     modalRoot.style.display = "block";
     modalRoot.setAttribute("aria-hidden", "false");
